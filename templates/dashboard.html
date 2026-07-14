@@ -1,0 +1,383 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Bank - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 1.5rem;
+        }
+        .glass-input {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            border-color: #6366f1;
+            outline: none;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+        }
+        .nav-btn.active {
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        /* PROFESSIONAL SPINNER REMOVAL */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* Sleek, custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- SIDEBAR LINKS -->
+        <div class="w-64 glass-card m-4 mr-2 flex flex-col justify-between p-6">
+            <div>
+                <div class="flex items-center gap-2 mb-10 px-2">
+                    <span class="text-2xl text-indigo-500">⚡</span>
+                    <h1 class="text-xl font-bold tracking-wider text-slate-100">Quantum<span class="text-indigo-400">Bank</span></h1>
+                </div>
+                
+                <nav class="space-y-2">
+                    <button onclick="switchTab('overview')" id="btn-overview" class="nav-btn active w-full flex items-center gap-3 px-4 py-3 text-left border border-transparent rounded-xl transition-all">
+                        <span>📊</span> Overview Ledger
+                    </button>
+                    <button onclick="switchTab('transfers')" id="btn-transfers" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent rounded-xl transition-all">
+                        <span>💸</span> Fund Transfers
+                    </button>
+                    <button onclick="switchTab('kyc')" id="btn-kyc" class="nav-btn w-full flex items-center gap-3 px-4 py-3 text-left text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent rounded-xl transition-all">
+                        <span>🛡️</span> KYC Verification
+                    </button>
+                </nav>
+            </div>
+            
+            <button onclick="logout()" class="w-full py-3 border border-red-500/30 hover:bg-red-500/10 text-red-400 rounded-xl font-semibold transition-all">
+                Secure Logout
+            </button>
+        </div>
+
+        <!-- MAIN DASHBOARD CONTENT CONTAINER -->
+        <div class="flex-1 flex flex-col overflow-y-auto p-4 pl-2 space-y-6">
+            
+            <!-- HEADER BAR -->
+            <div class="flex justify-between items-center px-4 py-2">
+                <div>
+                    <h2 id="pageTitle" class="text-3xl font-extrabold tracking-tight">Account Core</h2>
+                    <p id="pageSubtitle" class="text-slate-400 text-sm">Real-time status monitor console</p>
+                </div>
+                
+                <div class="glass-card px-4 py-2 flex items-center gap-3 border border-emerald-500/20">
+                    <div class="w-8 h-8 rounded-full bg-indigo-600/50 flex items-center justify-center text-sm font-bold text-slate-200" id="userInitials">✔</div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-mono" id="userEmail">Account Connected</p>
+                        <p class="text-[10px] text-emerald-400 font-mono flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span> Connected Terminal
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 1: OVERVIEW LEDGER -->
+            <div id="tab-overview" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- NET LIQUID PORTFOLIO WITH TOGGLE EYE -->
+                    <div class="lg:col-span-2 glass-card bg-gradient-to-br from-indigo-900/30 via-slate-900/40 to-emerald-900/20 p-8 flex flex-col justify-between min-h-[220px]">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs uppercase tracking-widest text-slate-400 font-semibold mb-2">Net Liquid Portfolio</p>
+                                <h3 class="text-6xl font-black text-slate-100 font-mono tracking-tight" id="balanceDisplay">••••••</h3>
+                            </div>
+                            <!-- Eye Button Button wrapper -->
+                            <button onclick="toggleBalanceVisibility()" id="visibilityToggleBtn" class="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-all text-slate-300 hover:text-indigo-400" title="Toggle Balance Mask">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6" id="eyeIcon">
+                                    <!-- Eye icon SVG path defaults to hidden state view -->
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="border-t border-white/5 pt-4 mt-4 flex justify-between text-xs text-slate-400 font-mono">
+                            <span>Routing Classification: Primary Checking Hub</span>
+                            <span class="text-indigo-400">Currency: INR (₹)</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-card p-6 flex flex-col justify-between">
+                        <div>
+                            <h4 class="text-sm font-semibold text-slate-300 tracking-wide mb-3">Quick Liquidity Desk</h4>
+                            <input type="number" id="transactionAmount" placeholder="Enter amount (₹)" class="w-full px-4 py-3 rounded-xl glass-input text-lg font-mono mb-4" min="1">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="handleTransaction('add')" class="py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all active:scale-[0.98]">Deposit</button>
+                            <button onclick="handleTransaction('withdraw')" class="py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl transition-all active:scale-[0.98]">Withdraw</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6">
+                    <h4 class="text-sm font-semibold text-slate-300 tracking-wide mb-4">Real-Time Core Transaction Audit Ledger</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-white/10 text-slate-400 text-xs font-mono uppercase tracking-wider">
+                                    <th class="pb-3 pl-2">Reference Identifier</th>
+                                    <th class="pb-3">Ledger Classification</th>
+                                    <th class="pb-3">Transaction Net Value</th>
+                                    <th class="pb-3 pr-2">Memo Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionContainer" class="divide-y divide-white/5 font-mono text-sm text-slate-300"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: FUND TRANSFERS -->
+            <div id="tab-transfers" class="tab-content hidden">
+                <div class="max-w-xl glass-card p-8 space-y-6">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-200">Inter-System Wire Transfer</h3>
+                        <p class="text-sm text-slate-400">Move capital instantly to target bank user nodes.</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Recipient Email Address</label>
+                            <input type="email" id="transferEmail" placeholder="user@quantum.com" class="w-full px-4 py-3 rounded-xl glass-input font-mono">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Transfer Principal Value (₹)</label>
+                            <input type="number" id="transferAmount" placeholder="0.00" class="w-full px-4 py-3 rounded-xl glass-input font-mono" min="1">
+                        </div>
+                        <button onclick="executeTransfer()" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all active:scale-[0.98]">
+                            Confirm Inter-System Settlement
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: KYC VERIFICATION -->
+            <div id="tab-kyc" class="tab-content hidden">
+                <div class="max-w-xl glass-card p-8 text-center space-y-6">
+                    <div class="w-20 h-20 bg-emerald-500/10 text-emerald-400 rounded-full flex items-center justify-center text-4xl mx-auto border border-emerald-500/20">
+                        🛡️
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-200">Identity Attestation Complete</h3>
+                        <p class="text-sm text-slate-400 mt-1">Your cryptographic node mapping is authorized and fully verified.</p>
+                    </div>
+                    <div class="p-4 bg-white/5 rounded-xl text-left font-mono text-xs text-slate-400 space-y-2">
+                        <p>• Clearance Tier: Level 1 Primary Liquidity Hub</p>
+                        <p>• Daily Movement Cap: Unlimited</p>
+                        <p>• Compliance Hash: SHA256-AUTHENTICATED</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- UTILITY SCRIPTS -->
+    <script>
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            alert("No secure token detected. Redirecting to access gateway.");
+            window.location.href = "/";
+        }
+
+        // State trackers for balance visibility masking
+        let currentBalanceValue = 0;
+        let isBalanceVisible = false;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchAccountDetails();
+            fetchTransactions();
+        });
+
+        // Tab Switcher Module
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active', 'text-indigo-400', 'bg-indigo-600/20'));
+            
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const targetBtn = document.getElementById(`btn-${tabName}`);
+            targetBtn.classList.add('active');
+
+            const titleMap = {
+                overview: { t: "Account Core", s: "Real-time status monitor console" },
+                transfers: { t: "Fund Transfers", s: "Discharge liquid assets seamlessly across system hubs" },
+                kyc: { t: "KYC Verification", s: "Regulatory mandate credential parameters" }
+            };
+
+            document.getElementById("pageTitle").innerText = titleMap[tabName].t;
+            document.getElementById("pageSubtitle").innerText = titleMap[tabName].s;
+        }
+
+        async function fetchAccountDetails() {
+            try {
+                const response = await fetch("/wallet/balance", {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (response.status === 401) { handleSessionExpiry(); return; }
+                const walletData = await response.json();
+                
+                // Store the real numerical value safely in RAM state
+                currentBalanceValue = walletData.balance;
+                renderBalanceDisplay();
+            } catch (err) { console.error("Terminal balance fetch breakdown: ", err); }
+        }
+
+        // Toggles local visibility state and updates view
+        function toggleBalanceVisibility() {
+            isBalanceVisible = !isBalanceVisible;
+            renderBalanceDisplay();
+        }
+
+        // Handles conditional masking and changes the SVG eye icons dynamically
+        function renderBalanceDisplay() {
+            const balanceDisplay = document.getElementById("balanceDisplay");
+            const eyeIcon = document.getElementById("eyeIcon");
+
+            if (isBalanceVisible) {
+                balanceDisplay.innerText = `₹${currentBalanceValue.toFixed(2)}`;
+                // Change eye to "Eye Slash / Crossed Eye" icon path
+                eyeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.822 7.822 3 3m-3-3a10.47 10.47 0 0 1-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                `;
+            } else {
+                balanceDisplay.innerText = "••••••";
+                // Restore back to standard open eye path layout
+                eyeIcon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                `;
+            }
+        }
+
+        async function handleTransaction(type) {
+            const amountInput = document.getElementById("transactionAmount");
+            const amount = parseFloat(amountInput.value);
+            if (isNaN(amount) || amount <= 0) { alert("Validation Fault: Type a valid positive balance value."); return; }
+
+            const endpoint = type === 'add' ? '/wallet/add' : '/wallet/withdraw';
+            try {
+                const response = await fetch(endpoint, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                    body: JSON.stringify({ amount: amount, description: type === 'add' ? 'Manual Vault Deposit' : 'Atm Wire Withdrawal' })
+                });
+                if (response.ok) {
+                    amountInput.value = "";
+                    fetchAccountDetails();
+                    fetchTransactions();
+                } else {
+                    const result = await response.json();
+                    alert(`Error: ${result.detail || "Transaction failed."}`);
+                }
+            } catch (err) { alert("Core parsing transaction exception."); }
+        }
+
+        async function executeTransfer() {
+            const email = document.getElementById("transferEmail").value.trim();
+            const amount = parseFloat(document.getElementById("transferAmount").value);
+
+            if (!email || isNaN(amount) || amount <= 0) {
+                alert("Validation Fault: Please populate proper recipient destination metrics.");
+                return;
+            }
+
+            try {
+                const response = await fetch("/wallet/transfer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                    body: JSON.stringify({ recipient_email: email, amount: amount })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    alert("Inter-system transfer processed and cleared successfully!");
+                    document.getElementById("transferEmail").value = "";
+                    document.getElementById("transferAmount").value = "";
+                    fetchAccountDetails();
+                    fetchTransactions();
+                    switchTab('overview');
+                } else {
+                    alert(`Transfer Error: ${result.detail || "Failed to process target accounting wire verification."}`);
+                }
+            } catch (err) { alert("Settlement framework networking runtime exception."); }
+        }
+
+        async function fetchTransactions() {
+            try {
+                const response = await fetch("/transactions", {
+                    method: "GET",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (!response.ok) return;
+                const transactions = await response.json();
+                const container = document.getElementById("transactionContainer");
+                container.innerHTML = "";
+
+                if (transactions.length === 0) {
+                    container.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-500 italic">No localized activity found in recent system buffers.</td></tr>`;
+                    return;
+                }
+
+                transactions.reverse().forEach((tx, index) => {
+                    const isCredit = tx.type === "CREDIT";
+                    const tableRow = `
+                        <tr class="hover:bg-white/[0.01] transition-all">
+                            <td class="py-3.5 pl-2 text-slate-500 font-semibold">#TXN-00${tx.id || index}</td>
+                            <td class="py-3.5"><span class="px-2.5 py-1 rounded-md text-xs font-bold ${isCredit ? 'text-emerald-400 bg-emerald-500/10' : 'text-red-400 bg-red-500/10'}">${tx.type}</span></td>
+                            <td class="py-3.5 font-bold ${isCredit ? 'text-emerald-400' : 'text-red-400'}">${isCredit ? '+₹' : '-₹'}${parseFloat(tx.amount).toFixed(2)}</td>
+                            <td class="py-3.5 text-slate-400 pr-2">${tx.description}</td>
+                        </tr>
+                    `;
+                    container.innerHTML += tableRow;
+                });
+            } catch (err) { console.error(err); }
+        }
+
+        function handleSessionExpiry() { localStorage.clear(); window.location.href = "/"; }
+        function logout() { localStorage.clear(); window.location.href = "/"; }
+    </script>
+</body>
+</html>
